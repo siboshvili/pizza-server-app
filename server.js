@@ -210,7 +210,6 @@ server.post("/api/order", async function createOrder(req, res) {
 });
 
 server.get("/api/past-orders", async function getPastOrders(req, res) {
-  await new Promise((resolve) => setTimeout(resolve, 5000));
   try {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = 20;
@@ -298,14 +297,29 @@ server.post("/api/contact", async function contactForm(req, res) {
   res.send({ success: "Message received" });
 });
 
-const start = async () => {
-  try {
-    await server.listen({ port: PORT });
-    console.log(`Server listening on port ${PORT}`);
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
-  }
-};
+// const start = async () => {
+//   try {
+//     await server.listen({ port: PORT });
+//     console.log(`Server listening on port ${PORT}`);
+//   } catch (err) {
+//     console.error(err);
+//     process.exit(1);
+//   }
+// };
 
-start();
+// start();
+
+server.addHook("preHandler", (req, res, done) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST");
+  res.header("Access-Control-Allow-Headers", "*");
+  const isPreflight = /options/i.test(req.method);
+  if (isPreflight) {
+    return res.send();
+  }
+  done();
+});
+
+const HOST = "RENDER" in process.env ? `0.0.0.0` : `localhost`;
+
+await server.listen({ host: HOST, port: PORT });
